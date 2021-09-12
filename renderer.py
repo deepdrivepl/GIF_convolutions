@@ -113,7 +113,7 @@ def get_kernel_img(kernels, C_in, C_out, K, G):
                     for w, pixel in enumerate(line):
 
                         pcol = np.array(pixel.color())
-                        img[x+h, y+w] = img[x+h, y+w] + pcol
+                        img[x+h, y+w] = pcol#img[x+h, y+w] + pcol
                         pixel.set_coord(x+h, y+w)
     return img
 

@@ -10,19 +10,19 @@ class Pixel:
                'color': np.array([.99, 1, 1]),
                'padding': np.array([0, 0]),
                'is_pad_color': np.array([0.8, 0.6, 1]),
-               'highligth_color': np.array([0.2, 0.6, 0.6])
+               'highligth_color': np.array([1.0, 0.56, 0.0])
              },
              'output':
              {
                'color': np.array([.9, .9, 1]),
                'padding': np.array([0, 0]),
-               'highligth_color': np.array([0.1, 0.6, 0.6])
+               'highligth_color': np.array([1.0, 0.56, 0.0])
              },
              'kernel':
              {
-               'color': np.array([.99, 1, 1]),
+               'color': np.array([1,.56,0]),
                'padding': np.array([0, 0]),
-               'highligth_color': np.array([0.1, 0.6, 0.6])
+               'highligth_color': np.array([1.0, 0.56, 0.0])
              }
            }
 

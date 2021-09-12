@@ -7,17 +7,20 @@ from conv2d import Conv2DVisualizer
 import renderer
 
 
-C_in = 2         # number of input channels
-C_out = 4           # number of output channels
-H_in = 7            # weight of the inputs
-W_in = 7           # width of the inputs
-K = 3              # kernel size (can be an integer of a two-value-integer tuple)
-P = 2               # padding  (can be an integer of a two-value-integer tuple)
-S = 2              # stride   (can be an integer of a two-value-integer tuple)
+C_in = 4         # number of input channels
+C_out = 8          # number of output channels
+H_in = 6            # weight of the inputs
+W_in = 6           # width of the inputs
+K = (3,3)              # kernel size (can be an integer of a two-value-integer tuple)
+P = 0               # padding  (can be an integer of a two-value-integer tuple)
+S = 1                # stride   (can be an integer of a two-value-integer tuple)
 D = 1              # dilation (can be an integer of a two-value-integer tuple)
 G = 2               # number of group
 
-time_sleep = 0.3    # time in second between two images
+H_out=4
+W_out=4
+
+time_sleep = 0.1   # time in second between two images
 
 
 if __name__ == '__main__':
@@ -76,27 +79,28 @@ if __name__ == '__main__':
     kernels = np.array(kernels)
 
     # initialize an OpenCV's normal window
-    cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
+    # cv2.namedWindow('Frame', cv2.WINDOW_NORMAL)
 
     # initialize the Conv2D visualizer with our parameters
     conv2d = Conv2DVisualizer(inputs, kernels, outputs, C_in, C_out, H_in, W_in, H_out, W_out, K, P, S, D, G, time_sleep)
     conv2d.start()  # start the thread
+    conv2d.join()
 
-    while True:
+    # while True:
 
-        # get the image of the Conv2D forward pass state
-        img = conv2d.img
+    #     # get the image of the Conv2D forward pass state
+    #     img = conv2d.img
 
-        # the first image can take a while to be created
-        if img is None:
-            img = renderer.get_waiting_frame()
+    #     # the first image can take a while to be created
+    #     if img is None:
+    #         img = renderer.get_waiting_frame()
 
-        # convert to bytes and BGR to be display by OpenCV
-        img = (img * 255).astype(np.uint8)
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+    #     # convert to bytes and BGR to be display by OpenCV
+    #     img = (img * 255).astype(np.uint8)
+    #     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
 
-        cv2.imshow('Frame', img)
-        # quit by pressing the 'q' key
-        if cv2.waitKey(1) & 0xff == ord('q'):
-            conv2d.stop() # stop the thread
-            break
+    #     cv2.imshow('Frame', img)
+    #     # quit by pressing the 'q' key
+    #     if cv2.waitKey(1) & 0xff == 27:
+    #         conv2d.stop() # stop the thread
+    #         break

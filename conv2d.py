@@ -8,7 +8,7 @@ from skimage import transform
 
 import renderer
 from pixel import Pixel
-
+from tqdm import tqdm
 
 class Conv2DVisualizer(Thread):
 
@@ -60,11 +60,10 @@ class Conv2DVisualizer(Thread):
     def save_gif(self):
         # to save only once
         if not self.gif_saved:
-            filename = 'GIFS/'
-            filename += f'Input Shape : ({self.C_in}, {self.H_in}, {self.W_in})'
-            filename += f' - Output Shape : ({self.C_out}, {self.H_out}, {self.W_out})'
-            filename += f' - K : {self.K} - P : {self.P} - S : {self.S}'
-            filename += f' - D : {self.D} - G : {self.G}.gif'
+            filename = f'GIFS/in_{self.C_in}_{self.H_in}_{self.W_in}_out_{self.C_out}_{self.H_out}_{self.W_out})'
+            filename += f'_K_{self.K}_P_{self.P}_S_{self.S}'
+            filename += f'_D_{self.D}_G_{self.G}.gif'
+            filename=filename.strip()
             self.images = [(x * 255).astype(np.uint8) for x in self.images]
             imageio.mimsave(filename, self.images, duration=self.time_sleep)
             self.images = []
@@ -131,80 +130,80 @@ class Conv2DVisualizer(Thread):
     def run(self):
         # start the thread
         self.is_running = True
-        while self.is_running:
-            # for each output channel, process the convolution
-            for c_out in range(self.C_out//self.G):
+        # while self.is_running:
+        # for each output channel, process the convolution
+        for c_out in tqdm(range(self.C_out//self.G)):
 
-                # highlight the cureent kernels
-                for pixel in self.highlighted_kernel:
-                    pixel.highlight = False
-                self.highlighted_kernel = []
+            # highlight the cureent kernels
+            for pixel in self.highlighted_kernel:
+                pixel.highlight = False
+            self.highlighted_kernel = []
 
-                # affect the pixel implicated in the current conv product
-                # and get the corners coordinates to draw lines
-                top_left = []
-                top_right = []
-                bottom_left = []
-                bottom_right = []
-                for group in self.kernels:
-                    kernels_in = group[c_out]
-                    for kernel in kernels_in:
-                        for i, line in enumerate(kernel):
-                            for j, pixel in enumerate(line):
-                                self.highlighted_kernel.append(pixel)
-                                pixel.highlight = True
-                                if i == 0 and j == 0:
-                                    top_left.append(pixel)
-                                if i == 0 and j == self.K[1] -1:
-                                    top_right.append(pixel)
-                                if i == self.K[0] -1 and j == 0:
-                                    bottom_left.append(pixel)
-                                if i == self.K[0] -1 and j == self.K[1] -1:
-                                    bottom_right.append(pixel)
-                self.kernel_corners = [top_left, top_right, bottom_left, bottom_right]
-
-                # same for the current output pixels
-                for out_h, h in enumerate(range(0, 1 + self.H_in  + 2 * self.P[0] - self.K[0] - (self.D[0] - 1) * (self.K[0] - 1), self.S[0])):
-                    for out_w, w in enumerate(range(0, 1 + self.W_in  + 2 * self.P[1] - self.K[1] - (self.D[1] - 1) * (self.K[1] - 1), self.S[1])):
-
-                        for pixel in self.highlighted_in_out:
-                            pixel.highlight = False
-                        self.highlighted_in_out = []
-
-
-                        top_left = []
-                        top_right = []
-                        bottom_left = []
-                        bottom_right = []
-                        for i, dh in enumerate(range(0, self.K[0] + (self.D[0] - 1) * (self.K[0] - 1), self.D[0])):
-                            for j, dw in enumerate(range(0, self.K[1] + (self.D[1] - 1) * (self.K[1] - 1), self.D[1])):
-
-                                for group in self.inputs:
-                                    for channel in group:
-                                        pixel = channel[h + dh, w + dw]
-                                        self.highlighted_in_out.append(pixel)
-                                        pixel.highlight = True
-                                        if i == 0 and j == 0:
-                                            top_left.append(pixel)
-                                        if i == 0 and j == self.K[1] -1:
-                                            top_right.append(pixel)
-                                        if i == self.K[0] -1 and j == 0:
-                                            bottom_left.append(pixel)
-                                        if i == self.K[0] -1 and j == self.K[1] -1:
-                                            bottom_right.append(pixel)
-                        self.inputs_corners = [top_left, top_right, bottom_left, bottom_right]
-
-                        outputs_corners = []
-                        for group in self.outputs:
-                            pixel = group[c_out, out_h, out_w]
-                            self.highlighted_in_out.append(pixel)
+            # affect the pixel implicated in the current conv product
+            # and get the corners coordinates to draw lines
+            top_left = []
+            top_right = []
+            bottom_left = []
+            bottom_right = []
+            for group in self.kernels:
+                kernels_in = group[c_out]
+                for kernel in kernels_in:
+                    for i, line in enumerate(kernel):
+                        for j, pixel in enumerate(line):
+                            self.highlighted_kernel.append(pixel)
                             pixel.highlight = True
-                            outputs_corners.append(pixel)
+                            if i == 0 and j == 0:
+                                top_left.append(pixel)
+                            if i == 0 and j == self.K[1] -1:
+                                top_right.append(pixel)
+                            if i == self.K[0] -1 and j == 0:
+                                bottom_left.append(pixel)
+                            if i == self.K[0] -1 and j == self.K[1] -1:
+                                bottom_right.append(pixel)
+            self.kernel_corners = [top_left, top_right, bottom_left, bottom_right]
 
-                        self.outputs_corners = outputs_corners
-                        self.set_image()
-                        time.sleep(self.time_sleep)
-            self.save_gif()
+            # same for the current output pixels
+            for out_h, h in enumerate(range(0, 1 + self.H_in  + 2 * self.P[0] - self.K[0] - (self.D[0] - 1) * (self.K[0] - 1), self.S[0])):
+                for out_w, w in enumerate(range(0, 1 + self.W_in  + 2 * self.P[1] - self.K[1] - (self.D[1] - 1) * (self.K[1] - 1), self.S[1])):
+
+                    for pixel in self.highlighted_in_out:
+                        pixel.highlight = False
+                    self.highlighted_in_out = []
+
+
+                    top_left = []
+                    top_right = []
+                    bottom_left = []
+                    bottom_right = []
+                    for i, dh in enumerate(range(0, self.K[0] + (self.D[0] - 1) * (self.K[0] - 1), self.D[0])):
+                        for j, dw in enumerate(range(0, self.K[1] + (self.D[1] - 1) * (self.K[1] - 1), self.D[1])):
+
+                            for group in self.inputs:
+                                for channel in group:
+                                    pixel = channel[h + dh, w + dw]
+                                    self.highlighted_in_out.append(pixel)
+                                    pixel.highlight = True
+                                    if i == 0 and j == 0:
+                                        top_left.append(pixel)
+                                    if i == 0 and j == self.K[1] -1:
+                                        top_right.append(pixel)
+                                    if i == self.K[0] -1 and j == 0:
+                                        bottom_left.append(pixel)
+                                    if i == self.K[0] -1 and j == self.K[1] -1:
+                                        bottom_right.append(pixel)
+                    self.inputs_corners = [top_left, top_right, bottom_left, bottom_right]
+
+                    outputs_corners = []
+                    for group in self.outputs:
+                        pixel = group[c_out, out_h, out_w]
+                        self.highlighted_in_out.append(pixel)
+                        pixel.highlight = True
+                        outputs_corners.append(pixel)
+
+                    self.outputs_corners = outputs_corners
+                    self.set_image()
+                    time.sleep(self.time_sleep)
+        self.save_gif()
 
     def stop(self):
         # stop the thread
